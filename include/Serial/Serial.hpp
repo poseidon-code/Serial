@@ -1,12 +1,14 @@
 #pragma once
 
-#include <fcntl.h>
 #include <functional>
 #include <string>
 #include <system_error>
-#include <termios.h>
 #include <thread>
+
+#include <fcntl.h>
+#include <termios.h>
 #include <unistd.h>
+
 
 
 class Serial {
@@ -20,7 +22,7 @@ public:
     Serial(const std::string com_port, const speed_t baudrate, const unsigned int size) {
         this->serial_port = open(com_port.c_str(), O_RDWR | O_NOCTTY);
         this->size = size;
-        
+
         if (this->serial_port < 0) throw std::runtime_error("failed to open serial port");
 
         if (tcgetattr(this->serial_port, &this->tty) != 0) {
@@ -36,18 +38,18 @@ public:
         this->tty.c_cflag &= ~CRTSCTS;            // no flow control
         this->tty.c_cflag |= CLOCAL | CREAD;      // enable receiver, ignore modem control signals
 
-        
+
         // Disable special handling of received bytes
-        this->tty.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON | IXOFF | IXANY); 
-        
+        this->tty.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON | IXOFF | IXANY);
+
         // disable input processing
         this->tty.c_lflag &= ~(ECHO | ECHOE | ECHONL | ICANON | ISIG | IEXTEN);
-        
+
         this->tty.c_oflag &= ~OPOST; // disable output processing
         this->tty.c_oflag &= ~ONLCR;
-        
+
         this->tty.c_cc[VMIN] = this->size; // minimum number of charaters to read
-        
+
 
         cfsetospeed(&this->tty, baudrate); // sets write baudrate
         cfsetispeed(&this->tty, baudrate); // sets read baudrate
@@ -65,7 +67,7 @@ public:
     ~Serial() {
         if (this->serial_port >= 0) close(this->serial_port);
     }
-    
+
 
     ssize_t Read(unsigned char* buffer) {
         return read(this->serial_port, &buffer, this->size);
