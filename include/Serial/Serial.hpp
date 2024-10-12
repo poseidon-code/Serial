@@ -3,7 +3,6 @@
 #include <functional>
 #include <string>
 #include <system_error>
-#include <thread>
 
 #include <fcntl.h>
 #include <termios.h>
@@ -81,35 +80,6 @@ public:
         if (bytes_read > 0) callback(buffer, bytes_read);
 
         return bytes_read;
-    }
-
-
-    int Read(std::stop_token stop, std::function<void(unsigned char*, const ssize_t)> callback, const unsigned char header, const unsigned char footer) {
-        unsigned char buffer[this->size] = {0};
-        unsigned char t_byte;
-
-        while (!stop.stop_requested()) {
-            ssize_t bytes_read = read(this->serial_port, &t_byte, 1);
-
-            if (bytes_read > 0) {
-                if (t_byte == header) {
-                    bytes_read = 0;
-                    buffer[bytes_read++] = t_byte;
-
-                    for (int i=1; i<this->size; ++i) {
-                        read(this->serial_port, &t_byte, 1);
-                        buffer[bytes_read++] = t_byte;
-                    }
-                }
-            }
-
-            if (buffer[this->size - 1] == footer)
-                callback(buffer, bytes_read);
-
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-
-        return EXIT_SUCCESS;
     }
 
 
