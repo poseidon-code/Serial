@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <functional>
 #include <string>
 #include <system_error>
@@ -12,13 +13,13 @@
 
 class Serial {
 private:
-    struct termios tty;
-    unsigned int size;
+    termios tty;
+    size_t size;
 
 public:
     int serial_port;
 
-    Serial(const std::string com_port, const speed_t baudrate, const unsigned int size) {
+    Serial(const std::string com_port, const speed_t baudrate, const size_t size) {
         this->serial_port = open(com_port.c_str(), O_RDWR | O_NOCTTY);
         this->size = size;
 
@@ -68,13 +69,13 @@ public:
     }
 
 
-    ssize_t Read(unsigned char* buffer) {
+    ssize_t Read(uint8_t* buffer) {
         return read(this->serial_port, &buffer, this->size);
     }
 
 
-    ssize_t Read(std::function<void(unsigned char*, const ssize_t)> callback) {
-        unsigned char buffer[this->size] = {0};
+    ssize_t Read(std::function<void(uint8_t*, const ssize_t)> callback) {
+        uint8_t buffer[this->size] = {0};
 
         ssize_t bytes_read = this->Read(buffer);
         if (bytes_read > 0) callback(buffer, bytes_read);
@@ -83,7 +84,7 @@ public:
     }
 
 
-    ssize_t Write(const unsigned char* data) {
+    ssize_t Write(const uint8_t* data) {
         return write(this->serial_port, data, this->size);
     }
 };
